@@ -64,12 +64,13 @@ def detection(img):
 
 
 def main():
-    matplotlib.use('qt5agg')
-    import matplotlib.pyplot as plt
-    from matplotlib.patches import Rectangle
+    # matplotlib.use('qt5agg')
+    # import matplotlib.pyplot as plt
+    # from matplotlib.patches import Rectangle
 
     init_model()
-    MAT_DIR = './mat'
+    MAT_DIR = './mat/test'
+    LABEL_DIR = './label/test'
     for dirpath, dirnames, filenames in os.walk(MAT_DIR):
         print(dirpath)
         for filename in filenames:
@@ -77,13 +78,21 @@ def main():
                 data = sio.loadmat(os.path.join(dirpath, filename))
                 img = data['data']
                 centers = detection(img)
-                img = img / np.float32(256.0)
-                for x, y in centers:
-                    currentAxis = plt.gca()
-                    currentAxis.add_patch(Rectangle((x - 90, y - 90), 180, 180,
-                                          alpha=1, facecolor='none'))
-                plt.imshow(img, cmap=plt.cm.gray)
-                plt.show()
+                img_id = dirpath.split('/')[-1]
+                label_file = os.path.join(LABEL_DIR, img_id + '.mat')
+                labels = sio.loadmat(label_file)['label']
+                distance = (lambda x1, y1, x2, y2: abs(x1 - x2) + abs(y1 - y2))
+
+                TP = 0
+                for x, y in labels:
+                    for x_, y_ in centers:
+                        if distance(x, y, x_, y_) < 36:
+                            TP += 1
+                            break
+                precision = TP / len(centers)
+                recall = TP / len(labels)
+                f_score = 2 * (precision * recall) / (precision + recall)
+                print(precision, recall, f_score)
 
 
 if __name__ == '__main__':
