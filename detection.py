@@ -81,7 +81,7 @@ def detection(img):
     result = []
     for i in range(0, map_width):
         for j in range(0, map_width):
-            if predict_map[i, j] > 0.9:
+            if predict_map[i, j] > 0.95:
                 result.append((i * stride + PATCH_SIZE / 2,
                                j * stride + PATCH_SIZE / 2))
     # return non_max_suppression(np.array(result), 0.3)
@@ -119,27 +119,27 @@ def main():
                 f_score = 2 * (precision * recall) / (precision + recall)
                 six.print_(precision, recall, f_score)
 
-                # f = open(dirpath.split('/')[-1] + '-predict.txt', 'w')
-                # for x, y in centers:
-                #     f.write(str(x) + ' ' + str(y) + '\n')
-                # f.close()
-                # f = open(dirpath.split('/')[-1] + '-label.txt', 'w')
-                # for x, y in labels:
-                #     f.write(str(x) + ' ' + str(y) + '\n')
-                # f.close()
-
-                img = img / np.float32(256)
-                plt.imshow(img, cmap=plt.cm.gray)
-                currentAxis = plt.gca()
-                for x, y in labels:
-                    currentAxis.add_patch(Rectangle((y - 90, x - 90),
-                                                    180, 180, fill=None,
-                                                    alpha=1))
+                f = open(dirpath.split('/')[-1] + '-predict.txt', 'w')
                 for x, y in centers:
-                    currentAxis.add_patch(Rectangle((y - 90, x - 90),
-                                                    180, 180, fill=None,
-                                                    alpha=1, color='blue'))
-                plt.show()
+                    f.write(str(x) + ' ' + str(y) + '\n')
+                f.close()
+                f = open(dirpath.split('/')[-1] + '-label.txt', 'w')
+                for x, y in labels:
+                    f.write(str(x) + ' ' + str(y) + '\n')
+                f.close()
+
+                # img = img / np.float32(256)
+                # plt.imshow(img, cmap=plt.cm.gray)
+                # currentAxis = plt.gca()
+                # for x, y in labels:
+                #     currentAxis.add_patch(Rectangle((y - 90, x - 90),
+                #                                     180, 180, fill=None,
+                #                                     alpha=1))
+                # for x, y in centers:
+                #     currentAxis.add_patch(Rectangle((y - 90, x - 90),
+                #                                     180, 180, fill=None,
+                #                                     alpha=1, color='blue'))
+                # plt.show()
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ import scipy.io as sio
 
 
 def load_data():
-    MAT_FILE = 'data.mat'
+    MAT_FILE = 'data_new.mat'
 
     data = sio.loadmat(MAT_FILE)
 
