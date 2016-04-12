@@ -16,12 +16,15 @@ def main():
     six.print_('load data complete')
 
     six.print_('start PCA')
-    pca = decomposition.PCA(n_components=25*25)
-    pca.fit(train_x[:1000])
+    try:
+        pca = pickle.load(open('pca.pickle', 'rb'))
+    except:
+        pca = decomposition.PCA(n_components=8*8)
+        pca.fit(train_x[:])
     train_x = pca.transform(train_x)
     six.print_('PCA complete')
 
-    clf = SVC(C=0.001, kernel='linear', verbose=True, max_iter=100)
+    clf = SVC(C=0.0001, kernel='linear', verbose=True, max_iter=100)
     six.print_('start training')
     clf.fit(train_x, train_y)
     six.print_('training complete')

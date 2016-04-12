@@ -1,20 +1,15 @@
 import os
-import math
 import six
+import pickle
 
 import numpy as np
-import scipy
 import scipy.io as sio
 import skimage.transform
 import matplotlib
 
-import theano
-import keras
-
-from model import *
-
-
 model = None
+svm = None
+pca = None
 
 
 def init_model():
@@ -24,9 +19,23 @@ def init_model():
     model.load_weights('weight-mlp-new.hdf5')
 
 
-def prediction(img_patch):
-    img_patch = np.reshape(img_patch, (-1, 1, 64, 64))
-    predict = model.predict(img_patch, verbose=0)
+def init_svm():
+    global svm
+    global pca
+    svm = pickle.load(open('svm.pickle', 'rb'))
+    pca = pickle.load(open('pca.pickle', 'rb'))
+
+
+def prediction(img_batch):
+    img_batch = np.reshape(img_batch, (-1, 1, 64, 64))
+    predict = model.predict(img_batch, verbose=0)
+    return predict
+
+
+def prediction_svm(img_batch):
+    img_batch = np.reshape(img_batch, (-1, 64 * 64))
+    img_batch = pca.transform(img_batch)
+    predict = svm.predict(img_batch)
     return predict
 
 
@@ -75,7 +84,7 @@ def detection(img):
             patch = img[i * stride: i * stride + PATCH_SIZE,
                         j * stride: j * stride + PATCH_SIZE]
             img_batch[i, j] = skimage.transform.resize(patch, (64, 64))
-    predict_map = prediction(img_batch.reshape(-1, 64, 64))
+    predict_map = prediction_svm(img_batch.reshape(-1, 64, 64))
     predict_map = predict_map.reshape((map_width, map_height))
 
     result = []
@@ -89,11 +98,11 @@ def detection(img):
 
 
 def main():
-    matplotlib.use('qt5agg')
+    # matplotlib.use('qt5agg')
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
 
-    init_model()
+    init_svm()
     MAT_DIR = './mat/test'
     LABEL_DIR = './label/test'
     for dirpath, dirnames, filenames in os.walk(MAT_DIR):
@@ -119,27 +128,27 @@ def main():
                 f_score = 2 * (precision * recall) / (precision + recall)
                 six.print_(precision, recall, f_score)
 
-                f = open(dirpath.split('/')[-1] + '-predict.txt', 'w')
-                for x, y in centers:
-                    f.write(str(x) + ' ' + str(y) + '\n')
-                f.close()
-                f = open(dirpath.split('/')[-1] + '-label.txt', 'w')
-                for x, y in labels:
-                    f.write(str(x) + ' ' + str(y) + '\n')
-                f.close()
-
-                # img = img / np.float32(256)
-                # plt.imshow(img, cmap=plt.cm.gray)
-                # currentAxis = plt.gca()
-                # for x, y in labels:
-                #     currentAxis.add_patch(Rectangle((y - 90, x - 90),
-                #                                     180, 180, fill=None,
-                #                                     alpha=1))
+                # f = open(dirpath.split('/')[-1] + '-predict.txt', 'w')
                 # for x, y in centers:
-                #     currentAxis.add_patch(Rectangle((y - 90, x - 90),
-                #                                     180, 180, fill=None,
-                #                                     alpha=1, color='blue'))
-                # plt.show()
+                #    f.write(str(x) + ' ' + str(y) + '\n')
+                # f.close()
+                # f = open(dirpath.split('/')[-1] + '-label.txt', 'w')
+                # for x, y in labels:
+                #     f.write(str(x) + ' ' + str(y) + '\n')
+                # f.close()
+
+                img = img / np.float32(256)
+                plt.imshow(img, cmap=plt.cm.gray)
+                currentAxis = plt.gca()
+                for x, y in labels:
+                    currentAxis.add_patch(Rectangle((y - 90, x - 90),
+                                                    180, 180, fill=None,
+                                                    alpha=1))
+                for x, y in centers:
+                    currentAxis.add_patch(Rectangle((y - 90, x - 90),
+                                                    180, 180, fill=None,
+                                                    alpha=1, color='blue'))
+                plt.show()
 
 
 if __name__ == '__main__':
