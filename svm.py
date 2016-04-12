@@ -21,7 +21,7 @@ def main():
     train_x = pca.transform(train_x)
     six.print_('PCA complete')
 
-    clf = SVC(C=0.001, verbose=True)
+    clf = SVC(C=0.001, kernel='linear', verbose=True, max_iter=100)
     six.print_('start training')
     clf.fit(train_x, train_y)
     six.print_('training complete')
@@ -29,6 +29,9 @@ def main():
     val_x = pca.transform(val_x)
     acc = sum(val_y == clf.predict(val_x)) / float(len(val_y))
     print(acc)
+
+    pickle.dump(pca, 'pca.pickle')
+    pickle.dump(clf, 'svm.pickle')
 
 
 if __name__ == '__main__':
