@@ -66,8 +66,8 @@ def detection(img):
     PATCH_SIZE = 180
     (width, height) = img.shape
     stride = 10
-    map_width = math.floor((width - PATCH_SIZE) / stride + 1)
-    map_height = math.floor((height - PATCH_SIZE) / stride + 1)
+    map_width = int((width - PATCH_SIZE) / stride + 1)
+    map_height = int((height - PATCH_SIZE) / stride + 1)
     predict_map = np.zeros((map_width, map_height))
     result = []
 
@@ -85,7 +85,7 @@ def detection(img):
 
 
 def main():
-    matplotlib.use('qt5agg')
+    # matplotlib.use('qt5agg')
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
 
