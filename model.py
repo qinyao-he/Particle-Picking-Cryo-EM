@@ -16,7 +16,7 @@ from keras.optimizers import SGD
 
 
 def load_data():
-    MAT_FILE = 'data.mat'
+    MAT_FILE = 'data_new.mat'
 
     data = sio.loadmat(MAT_FILE)
 
@@ -96,7 +96,9 @@ def build_cnn():
     # 2 * 2 * 256
 
     model.add(Flatten())
+    model.add(Dropout(0.5))
     model.add(Dense(128, init='he_uniform', activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
 
     return model
@@ -194,7 +196,9 @@ def build_cnn_small():
     # 2 * 2 * 32
 
     model.add(Flatten())
+    model.add(Dropout(0.5))
     model.add(Dense(128, init='he_uniform', activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
 
     return model
@@ -232,7 +236,7 @@ def main():
     (train_x, train_y, val_x, val_y) = load_data()
     six.print_('load data complete')
 
-    model = build_cnn()
+    model = build_cnn_small()
     sgd = SGD(lr=0.001, decay=1e-4, momentum=0.9, nesterov=True)
     model.compile(loss='binary_crossentropy', optimizer=sgd)
     six.print_('build model complete')

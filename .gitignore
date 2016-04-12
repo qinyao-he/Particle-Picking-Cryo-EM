@@ -1,0 +1,12 @@
+__pycache__/
+homework_data/
+mat/
+mat_new/
+label/
+*.mat
+*.hdf5
+*.zip
+*.txt
+project1/
+log-*
+__pycache__

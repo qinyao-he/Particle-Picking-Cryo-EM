@@ -1,5 +1,6 @@
 import os
 import math
+import six
 
 import numpy as np
 import scipy
@@ -10,7 +11,7 @@ import matplotlib
 import theano
 import keras
 
-from model import build_mlp
+from model import *
 
 
 model = None
@@ -20,7 +21,7 @@ def init_model():
     global model
     model = build_mlp()
     model.compile(loss='binary_crossentropy', optimizer='sgd')
-    model.load_weights('weight-mlp-dropout.hdf5')
+    model.load_weights('weight-mlp-new.hdf5')
 
 
 def prediction(img_patch):
@@ -29,10 +30,42 @@ def prediction(img_patch):
     return predict[0, 0]
 
 
+def non_max_suppression(centers, threshold):
+    if len(centers) == 0:
+        return []
+
+    pick = []
+    x1 = centers[:, 0] - 90
+    y1 = centers[:, 1] - 90
+    x2 = centers[:, 0] + 90
+    y2 = centers[:, 1] + 90
+    idxs = np.argsort(y2)
+
+    while len(idxs) > 0:
+        last = len(idxs) - 1
+        i = idxs[last]
+        pick.append(i)
+
+        xx1 = np.maximum(x1[i], x1[idxs[:last]])
+        yy1 = np.maximum(y1[i], y1[idxs[:last]])
+        xx2 = np.minimum(x2[i], x2[idxs[:last]])
+        yy2 = np.minimum(y2[i], y2[idxs[:last]])
+
+        w = np.maximum(0, xx2 - xx1 + 1)
+        h = np.maximum(0, yy2 - yy1 + 1)
+
+        overlap = w * h / float(180 * 180)
+
+        idxs = np.delete(idxs, np.concatenate(([last],
+                         np.where(overlap > threshold)[0])))
+
+    return centers[pick].astype("int")
+
+
 def detection(img):
     PATCH_SIZE = 180
     (width, height) = img.shape
-    stride = int(180 * 0.2)
+    stride = 10
     map_width = math.floor((width - PATCH_SIZE) / stride + 1)
     map_height = math.floor((height - PATCH_SIZE) / stride + 1)
     predict_map = np.zeros((map_width, map_height))
@@ -44,29 +77,17 @@ def detection(img):
                         j * stride: j * stride + PATCH_SIZE]
             patch = skimage.transform.resize(patch, (64, 64))
             predict_map[i, j] = prediction(patch)
-
-    for i in range(0, map_width):
-        for j in range(0, map_height):
-            di = [0, 1, 0, -1, -1, -1, 1, 1]
-            dj = [1, 0, -1, 0, -1, 1, -1, 1]
-            flag = True
-            for k in range(8):
-                ii = i + di[k]
-                jj = j + dj[k]
-                if (ii >= 0 and ii < map_width) \
-                    and (jj >= 0 and jj < map_height) \
-                        and (predict_map[i, j] < predict_map[ii, jj]):
-                    flag = False
-            if flag and predict_map[i, j] > 0.8:
+            if predict_map[i, j] > 0.9:
                 result.append((i * stride + PATCH_SIZE / 2,
                                j * stride + PATCH_SIZE / 2))
+    # return non_max_suppression(np.array(result), 0.3)
     return result
 
 
 def main():
-    # matplotlib.use('qt5agg')
-    # import matplotlib.pyplot as plt
-    # from matplotlib.patches import Rectangle
+    matplotlib.use('qt5agg')
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Rectangle
 
     init_model()
     MAT_DIR = './mat/test'
@@ -89,10 +110,32 @@ def main():
                         if distance(x, y, x_, y_) < 36:
                             TP += 1
                             break
-                precision = TP / len(centers)
-                recall = TP / len(labels)
+                precision = float(TP) / len(centers)
+                recall = float(TP) / len(labels)
                 f_score = 2 * (precision * recall) / (precision + recall)
-                print(precision, recall, f_score)
+                six.print_(precision, recall, f_score)
+
+                # f = open(dirpath.split('/')[-1] + '-predict.txt', 'w')
+                # for x, y in centers:
+                #     f.write(str(x) + ' ' + str(y) + '\n')
+                # f.close()
+                # f = open(dirpath.split('/')[-1] + '-label.txt', 'w')
+                # for x, y in labels:
+                #     f.write(str(x) + ' ' + str(y) + '\n')
+                # f.close()
+
+                img = img / np.float32(256)
+                plt.imshow(img, cmap=plt.cm.gray)
+                currentAxis = plt.gca()
+                for x, y in labels:
+                    currentAxis.add_patch(Rectangle((y - 90, x - 90),
+                                                    180, 180, fill=None,
+                                                    alpha=1))
+                for x, y in centers:
+                    currentAxis.add_patch(Rectangle((y - 90, x - 90),
+                                                    180, 180, fill=None,
+                                                    alpha=1, color='blue'))
+                plt.show()
 
 
 if __name__ == '__main__':
