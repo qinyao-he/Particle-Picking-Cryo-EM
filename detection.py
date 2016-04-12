@@ -25,9 +25,9 @@ def init_model():
 
 
 def prediction(img_patch):
-    img_patch = np.reshape(img_patch, (1, 1, 64, 64))
+    img_patch = np.reshape(img_patch, (-1, 1, 64, 64))
     predict = model.predict(img_patch, verbose=0)
-    return predict[0, 0]
+    return predict
 
 
 def non_max_suppression(centers, threshold):
@@ -68,15 +68,19 @@ def detection(img):
     stride = 10
     map_width = int((width - PATCH_SIZE) / stride + 1)
     map_height = int((height - PATCH_SIZE) / stride + 1)
-    predict_map = np.zeros((map_width, map_height))
-    result = []
 
+    img_batch = np.zeros((map_width, map_height, 64, 64))
     for i in range(0, map_width):
         for j in range(0, map_width):
             patch = img[i * stride: i * stride + PATCH_SIZE,
                         j * stride: j * stride + PATCH_SIZE]
-            patch = skimage.transform.resize(patch, (64, 64))
-            predict_map[i, j] = prediction(patch)
+            img_batch[i, j] = skimage.transform.resize(patch, (64, 64))
+    predict_map = prediction(img_batch.reshape(-1, 64, 64))
+    predict_map = predict_map.reshape((map_width, map_height))
+
+    result = []
+    for i in range(0, map_width):
+        for j in range(0, map_width):
             if predict_map[i, j] > 0.9:
                 result.append((i * stride + PATCH_SIZE / 2,
                                j * stride + PATCH_SIZE / 2))
@@ -85,7 +89,7 @@ def detection(img):
 
 
 def main():
-    # matplotlib.use('qt5agg')
+    matplotlib.use('qt5agg')
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
 
