@@ -30,8 +30,8 @@ def main():
     acc = sum(val_y == clf.predict(val_x)) / float(len(val_y))
     print(acc)
 
-    pickle.dump(pca, 'pca.pickle')
-    pickle.dump(clf, 'svm.pickle')
+    pickle.dump(pca, open('pca.pickle', 'wb'))
+    pickle.dump(clf, open('svm.pickle', 'wb'))
 
 
 if __name__ == '__main__':
