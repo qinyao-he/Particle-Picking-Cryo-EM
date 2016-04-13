@@ -23,8 +23,8 @@ def sliding(img, labels):
             patch = img[i * stride: i * stride + patch_size,
                         j * stride: j * stride + patch_size] / 256.0
             X_negative[i, j] = skimage.transform.resize(patch, (64, 64)) * 256
-            x_center = j * stride + patch_size / 2
-            y_center = i * stride + patch_size / 2
+            x_center = i * stride + patch_size / 2
+            y_center = j * stride + patch_size / 2
             dist = distance(labels[:, 0], labels[:, 1], x_center, y_center)
             cond = np.where(dist <= 36)[0]
             if (len(cond) == 0):
@@ -45,12 +45,12 @@ def sliding(img, labels):
         y = labels[i, 1]
         for i_offset in range(-4, 5, 4):
             for j_offset in range(-4, 5, 4):
-                x1 = x + j_offset - patch_size / 2
-                x2 = x + j_offset + patch_size / 2
-                y1 = y + i_offset - patch_size / 2
-                y2 = y + i_offset + patch_size / 2
-                if (x1 >= 0 and x2 <= height) and (y1 >= 0 and y2 <= width):
-                    patch = img[y1: y2, x1: x2] / 256.0
+                x1 = x + i_offset - patch_size / 2
+                x2 = x + i_offset + patch_size / 2
+                y1 = y + j_offset - patch_size / 2
+                y2 = y + j_offset + patch_size / 2
+                if (x1 >= 0 and x2 <= width) and (y1 >= 0 and y2 <= height):
+                    patch = img[x1:x2, y1:y2] / 256.0
                     patch = skimage.transform.resize(patch, (64, 64)) * 256
                     X_positive[cnt] = patch
                     y_positive[cnt] = 1
