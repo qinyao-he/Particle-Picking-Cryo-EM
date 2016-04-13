@@ -35,8 +35,8 @@ def sliding(img, labels):
     X = X.reshape(-1, 64, 64)
     y = y.reshape(-1)
 
-    X_extend = np.zeros((len(labels) * 9 * 9, 64, 64))
-    y_extend = np.zeros((len(labels) * 9 * 9))
+    X_extend = np.zeros((len(labels) * 9 * 9 * 8, 64, 64))
+    y_extend = np.zeros((len(labels) * 9 * 9 * 8))
     cnt = 0
     for i in range(len(labels)):
         x_ = labels[i, 0]
@@ -48,10 +48,20 @@ def sliding(img, labels):
                 y1 = y_ + i_offset - patch_size / 2
                 y2 = y_ + i_offset + patch_size / 2
                 if (x1 >= 0 and x2 < height) and (y1 >= 0 and y2 < width):
-                    y_extend[cnt] = 1
                     patch = img[y1: y2, x1: x2]
-                    X_extend[cnt] = skimage.transform.resize(patch, (64, 64))
-                cnt += 1
+                    patch = skimage.transform.resize(patch, (64, 64))
+                    X_extend[cnt] = patch
+                    X_extend[cnt + 1] = skimage.transform(patch, 90)
+                    X_extend[cnt + 2] = skimage.transform(patch, 180)
+                    X_extend[cnt + 3] = skimage.transform(patch, 270)
+                    patch = np.transpose(patch)
+                    X_extend[cnt + 4] = patch
+                    X_extend[cnt + 5] = skimage.transform(patch, 90)
+                    X_extend[cnt + 6] = skimage.transform(patch, 180)
+                    X_extend[cnt + 7] = skimage.transform(patch, 270)
+                    for k in range(8):
+                        y[cnt + k] = 1
+                cnt += 8
 
     print(X_extend.shape)
     X_extend = X_extend[y_extend == 1]
@@ -60,6 +70,10 @@ def sliding(img, labels):
     X = np.concatenate([X, X_extend], axis=0)
     y = np.concatenate([y, y_extend], axis=0)
     print(sum(y == 0), sum(y == 1))
+    sio.savemat('data_new.mat', {
+        train_x: X,
+        train_y: y
+    })
     return (X, y)
 
 
