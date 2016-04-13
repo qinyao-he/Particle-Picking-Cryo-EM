@@ -34,15 +34,17 @@ def sliding(img, labels):
 
     X = X.reshape(-1, 64, 64)
     y = y.reshape(-1)
+    X = X[y == 0]
+    y = y[y == 0]
 
-    X_extend = np.zeros((len(labels) * 9 * 9 * 8, 64, 64))
-    y_extend = np.zeros((len(labels) * 9 * 9 * 8))
+    X_extend = np.zeros((len(labels) * 3 * 3 * 8, 64, 64))
+    y_extend = np.zeros((len(labels) * 3 * 3 * 8))
     cnt = 0
     for i in range(len(labels)):
         x_ = labels[i, 0]
         y_ = labels[i, 1]
-        for i_offset in range(-16, 17, 4):
-            for j_offset in range(-16, 17, 4):
+        for i_offset in range(-4, 5, 4):
+            for j_offset in range(-4, 5, 4):
                 x1 = x_ + j_offset - patch_size / 2
                 x2 = x_ + j_offset + patch_size / 2
                 y1 = y_ + i_offset - patch_size / 2
@@ -63,13 +65,16 @@ def sliding(img, labels):
                         y_extend[cnt + k] = 1
                 cnt += 8
 
-    print(X_extend.shape)
     X_extend = X_extend[y_extend == 1]
     y_extend = y_extend[y_extend == 1]
-    print(X_extend.shape, y_extend.shape)
-    X = np.concatenate([X, X_extend], axis=0)
-    y = np.concatenate([y, y_extend], axis=0)
-    print(sum(y == 0), sum(y == 1))
+
+    indices = np.arange(len(X))
+    np.random.shuffle(indices)
+    X = X[indices]
+    y = y[indices]
+
+    X = np.concatenate([X, X_extend[:len(y_extend)]], axis=0)
+    y = np.concatenate([y, y_extend[:len(y_extend)]], axis=0)
     sio.savemat('data_new.mat', {
         'train_x': X,
         'train_y': y
