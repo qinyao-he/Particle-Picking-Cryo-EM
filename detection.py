@@ -14,9 +14,10 @@ pca = None
 
 def init_model():
     global model
-    model = build_mlp()
+    import models.mlp
+    model = models.mlp.build()
     model.compile(loss='binary_crossentropy', optimizer='sgd')
-    model.load_weights('weight-mlp-new.hdf5')
+    model.load_weights('weight-mlp.hdf5')
 
 
 def init_svm():
@@ -82,9 +83,9 @@ def detection(img):
     for i in range(0, map_width):
         for j in range(0, map_width):
             patch = img[i * stride: i * stride + PATCH_SIZE,
-                        j * stride: j * stride + PATCH_SIZE]
+                        j * stride: j * stride + PATCH_SIZE] / 256.0
             img_batch[i, j] = skimage.transform.resize(patch, (64, 64))
-    predict_map = prediction_svm(img_batch.reshape(-1, 64, 64))
+    predict_map = prediction(img_batch.reshape(-1, 64, 64))
     predict_map = predict_map.reshape((map_width, map_height))
 
     result = []
