@@ -4,8 +4,10 @@ from sklearn.cluster import AffinityPropagation
 from sklearn.cluster import MeanShift, estimate_bandwidth
 from sklearn.cluster import DBSCAN
 
+
 def distance(x1, y1, x2, y2):
-    return math.sqrt((x1 - x2) ** 2 +  (y1 - y2) ** 2)
+    return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+
 
 def judge(pd_centers, gt_centers):
     TP = 0
@@ -19,6 +21,7 @@ def judge(pd_centers, gt_centers):
     f_score = 2 * (precision * recall) / (precision + recall)
     print(len(pd_centers), len(gt_centers), TP, precision, recall, f_score)
 
+
 def get_list(filename):
     f = open(filename)
     lines = f.readlines()
@@ -28,11 +31,13 @@ def get_list(filename):
         res.append([int(float(part[0])), int(float(part[1]))])
     return res
 
+
 def save_list(filename, out_list):
     fout = open(filename, 'w')
     for x, y in out_list:
         fout.write(str(int(y)) + " " + str(int(x)) + '\n')
     fout.close()
+
 
 def main():
     centers = get_list('out_center.txt')
