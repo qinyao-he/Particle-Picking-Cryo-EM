@@ -51,14 +51,14 @@ def sliding(img, labels):
                     patch = img[y1: y2, x1: x2]
                     patch = skimage.transform.resize(patch, (64, 64))
                     X_extend[cnt] = patch
-                    X_extend[cnt + 1] = skimage.transform(patch, 90)
-                    X_extend[cnt + 2] = skimage.transform(patch, 180)
-                    X_extend[cnt + 3] = skimage.transform(patch, 270)
+                    X_extend[cnt + 1] = skimage.transform.rotate(patch, 90)
+                    X_extend[cnt + 2] = skimage.transform.rotate(patch, 180)
+                    X_extend[cnt + 3] = skimage.transform.rotate(patch, 270)
                     patch = np.transpose(patch)
                     X_extend[cnt + 4] = patch
-                    X_extend[cnt + 5] = skimage.transform(patch, 90)
-                    X_extend[cnt + 6] = skimage.transform(patch, 180)
-                    X_extend[cnt + 7] = skimage.transform(patch, 270)
+                    X_extend[cnt + 5] = skimage.transform.rotate(patch, 90)
+                    X_extend[cnt + 6] = skimage.transform.rotate(patch, 180)
+                    X_extend[cnt + 7] = skimage.transform.rotate(patch, 270)
                     for k in range(8):
                         y[cnt + k] = 1
                 cnt += 8
