@@ -11,3 +11,4 @@ project1/
 log-*
 __pycache__
 *.pyc
+*.pickle

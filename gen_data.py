@@ -1,0 +1,82 @@
+import os
+
+import numpy as np
+import scipy.io as sio
+import skimage.transform
+
+
+def sliding(img, labels):
+    patch_size = 180
+    (width, height) = img.shape
+    stride = 10
+    map_width = int((width - patch_size) / stride + 1)
+    map_height = int((height - patch_size) / stride + 1)
+
+    distance = (lambda x1, y1, x2, y2: abs(x1 - x2) + abs(y1 - y2))
+
+    print(len(labels))
+
+    X = np.zeros((map_width, map_height, 64, 64)).astype('uint8')
+    y = np.zeros((map_width, map_height)).astype('uint8')
+    for i in range(0, map_width):
+        for j in range(0, map_width):
+            patch = img[i * stride: i * stride + patch_size,
+                        j * stride: j * stride + patch_size]
+            X[i, j] = skimage.transform.resize(patch, (64, 64))
+            x_center = j * stride + patch_size / 2
+            y_center = i * stride + patch_size / 2
+            dist = distance(labels[:, 0], labels[:, 1], x_center, y_center)
+            cond = np.where(dist <= 36)[0]
+            if (len(cond) == 0):
+                y[i, j] = 0
+            else:
+                y[i, j] = 1
+
+    X = X.reshape(-1, 64, 64)
+    y = y.reshape(-1)
+
+    X_extend = np.zeros((len(labels) * 9 * 9, 64, 64))
+    y_extend = np.zeros((len(labels) * 9 * 9))
+    cnt = 0
+    for i in range(len(labels)):
+        x_ = labels[i, 0]
+        y_ = labels[i, 1]
+        for i_offset in range(-16, 17, 4):
+            for j_offset in range(-16, 17, 4):
+                x1 = x_ + j_offset - patch_size / 2
+                x2 = x_ + j_offset + patch_size / 2
+                y1 = y_ + i_offset - patch_size / 2
+                y2 = y_ + i_offset + patch_size / 2
+                if (x1 >= 0 and x2 < height) and (y1 >= 0 and y2 < width):
+                    y_extend[cnt] = 1
+                    patch = img[y1: y2, x1: x2]
+                    X_extend[cnt] = skimage.transform.resize(patch, (64, 64))
+                cnt += 1
+
+    print(X_extend.shape)
+    X_extend = X_extend[y_extend == 1]
+    y_extend = y_extend[y_extend == 1]
+    print(X_extend.shape, y_extend.shape)
+    X = np.concatenate([X, X_extend], axis=0)
+    y = np.concatenate([y, y_extend], axis=0)
+    print(sum(y == 0), sum(y == 1))
+    return (X, y)
+
+
+def main():
+    MAT_PATH = './mat/train'
+    LABEL_PATH = './label/train'
+
+    for dirpath, dirnames, filenames in os.walk(MAT_PATH):
+        print(dirpath)
+        for filename in filenames:
+            if filename == 'full.mat':
+                img = sio.loadmat(os.path.join(dirpath, filename))['data']
+                img_id = dirpath.split('/')[-1]
+                label_file = os.path.join(LABEL_PATH, img_id + '.mat')
+                labels = sio.loadmat(label_file)['label']
+                sliding(img, labels)
+
+
+if __name__ == '__main__':
+    main()
