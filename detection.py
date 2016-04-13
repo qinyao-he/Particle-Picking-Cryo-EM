@@ -91,7 +91,18 @@ def detection(img):
     result = []
     for i in range(0, map_width):
         for j in range(0, map_width):
-            if predict_map[i, j] > 0.95:
+            i_offset = [0, 1, 0, -1, 1, 1, -1, -1]
+            j_offset = [1, 0, -1, 0, 1, -1, 1, -1]
+            flag = True
+            for di, dj in zip(i_offset, j_offset):
+                ii = i + di
+                jj = j + dj
+                if (ii >= 0 and ii < map_width) \
+                        and (jj >= 0 and jj < map_height):
+                    if predict_map[ii, jj] > predict_map[i, j]:
+                        flag = False
+                        break
+            if flag and predict_map[i, j] > 0.8:
                 result.append((i * stride + PATCH_SIZE / 2,
                                j * stride + PATCH_SIZE / 2))
     # return non_max_suppression(np.array(result), 0.3)
@@ -99,11 +110,11 @@ def detection(img):
 
 
 def main():
-    # matplotlib.use('qt5agg')
+    matplotlib.use('qt5agg')
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
 
-    init_svm()
+    init_model()
     MAT_DIR = './mat/test'
     LABEL_DIR = './label/test'
     for dirpath, dirnames, filenames in os.walk(MAT_DIR):

@@ -37,8 +37,8 @@ def sliding(img, labels):
     X_negative = X_negative[y_negative == 0]
     y_negative = y_negative[y_negative == 0]
 
-    X_positive = np.zeros((len(labels) * 9 * 9, 64, 64)).astype('uint8')
-    y_positive = np.zeros((len(labels) * 9 * 9)).astype('uint8')
+    X_positive = np.zeros((len(labels) * 3 * 3, 64, 64)).astype('uint8')
+    y_positive = np.zeros((len(labels) * 3 * 3)).astype('uint8')
     cnt = 0
     for i in range(len(labels)):
         x = labels[i, 0]
@@ -69,10 +69,6 @@ def sliding(img, labels):
     y = np.concatenate([y_negative[:len(y_positive)], y_positive], axis=0) \
         .astype('uint8')
     print(sum(y == 0), sum(y == 1))
-    sio.savemat('data_new.mat', {
-        'train_x': X,
-        'train_y': y
-    })
     return (X, y)
 
 
@@ -80,6 +76,8 @@ def main():
     MAT_PATH = './mat/train'
     LABEL_PATH = './label/train'
 
+    train_x = np.zeros((0, 64, 64)).astype('uint8')
+    train_y = np.zeros((0)).astype('uint8')
     for dirpath, dirnames, filenames in os.walk(MAT_PATH):
         print(dirpath)
         for filename in filenames:
@@ -88,7 +86,13 @@ def main():
                 img_id = dirpath.split('/')[-1]
                 label_file = os.path.join(LABEL_PATH, img_id + '.mat')
                 labels = sio.loadmat(label_file)['label']
-                sliding(img, labels)
+                X, y = sliding(img, labels)
+                train_x = np.concatenate([train_x, X], axis=0)
+                train_y = np.concatenate([train_y, y], axis=0)
+    sio.savemat('data_new.mat', {
+        'train_x': train_x,
+        'train_y': train_y
+    })
 
 
 if __name__ == '__main__':
