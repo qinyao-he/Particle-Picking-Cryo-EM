@@ -71,8 +71,8 @@ def sliding(img, labels):
     y = np.concatenate([y, y_extend], axis=0)
     print(sum(y == 0), sum(y == 1))
     sio.savemat('data_new.mat', {
-        train_x: X,
-        train_y: y
+        'train_x': X,
+        'train_y': y
     })
     return (X, y)
 
