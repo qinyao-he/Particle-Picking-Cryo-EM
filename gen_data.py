@@ -37,8 +37,8 @@ def sliding(img, labels):
     X = X[y == 0]
     y = y[y == 0]
 
-    X_extend = np.zeros((len(labels) * 3 * 3 * 8, 64, 64))
-    y_extend = np.zeros((len(labels) * 3 * 3 * 8))
+    X_extend = np.zeros((len(labels) * 3 * 3 * 8, 64, 64)).astype('uint8')
+    y_extend = np.zeros((len(labels) * 3 * 3 * 8)).astype('uint8')
     cnt = 0
     for i in range(len(labels)):
         x_ = labels[i, 0]
@@ -73,8 +73,8 @@ def sliding(img, labels):
     X = X[indices]
     y = y[indices]
 
-    X = np.concatenate([X, X_extend[:len(y_extend)]], axis=0)
-    y = np.concatenate([y, y_extend[:len(y_extend)]], axis=0)
+    X = np.concatenate([X, X_extend[:len(y_extend)]], axis=0).astype('uint8')
+    y = np.concatenate([y, y_extend[:len(y_extend)]], axis=0).astype('uint8')
     sio.savemat('data_new.mat', {
         'train_x': X,
         'train_y': y
