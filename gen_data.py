@@ -60,7 +60,7 @@ def sliding(img, labels):
                     X_extend[cnt + 6] = skimage.transform.rotate(patch, 180)
                     X_extend[cnt + 7] = skimage.transform.rotate(patch, 270)
                     for k in range(8):
-                        y[cnt + k] = 1
+                        y_extend[cnt + k] = 1
                 cnt += 8
 
     print(X_extend.shape)
