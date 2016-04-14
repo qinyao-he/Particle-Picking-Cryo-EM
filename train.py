@@ -33,13 +33,13 @@ def main():
               decay=args.decay,
               momentum=args.momentum,
               nesterov=True)
-    model.compile(loss='binary_crossentropy', optimizer=sgd)
+    model.compile(loss='binary_crossentropy', optimizer=sgd,
+                  metrics=['accuracy'])
     six.print_('build model complete')
 
     six.print_('start training')
     model.fit(train_x, train_y, batch_size=args.batch, nb_epoch=args.epoch,
               verbose=2,
-              show_accuracy=True,
               shuffle=True,
               validation_data=(val_x, val_y))
     model.save_weights(args.output + '.hdf5')
