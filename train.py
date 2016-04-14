@@ -3,7 +3,6 @@ import six
 import argparse
 import importlib
 
-import theano
 import keras
 
 from keras.optimizers import SGD
