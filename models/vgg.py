@@ -47,3 +47,6 @@ def build():
     model.add(Dense(2048, init='he_uniform', activation='relu'))
     model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
+
+    return model
+
