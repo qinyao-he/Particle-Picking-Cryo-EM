@@ -7,6 +7,8 @@ import scipy.io as sio
 import skimage.transform
 import matplotlib
 
+from cluster import cluster
+
 model = None
 svm = None
 pca = None
@@ -89,28 +91,11 @@ def detection(img):
     predict_map = predict_map.reshape((map_width, map_height))
 
     result = []
-    # for i in range(0, map_width):
-    #     for j in range(0, map_width):
-    #         i_offset = [0, 1, 0, -1, 1, 1, -1, -1]
-    #         j_offset = [1, 0, -1, 0, 1, -1, 1, -1]
-    #         flag = True
-    #         for di, dj in zip(i_offset, j_offset):
-    #             ii = i + di
-    #             jj = j + dj
-    #             if (ii >= 0 and ii < map_width) \
-    #                     and (jj >= 0 and jj < map_height):
-    #                 if predict_map[ii, jj] > predict_map[i, j]:
-    #                     flag = False
-    #                     break
-    #         if flag and predict_map[i, j] > 0.8:
-    #             result.append((i * stride + PATCH_SIZE / 2,
-    #                            j * stride + PATCH_SIZE / 2))
     for i in range(0, map_width):
         for j in range(0, map_width):
-            if predict_map[i, j] > 0.95:
+            if predict_map[i, j] > 0.8:
                 result.append((i * stride + PATCH_SIZE / 2,
                                j * stride + PATCH_SIZE / 2))
-    # return non_max_suppression(np.array(result), 0.3)
     return result
 
 
@@ -134,6 +119,8 @@ def main():
                 labels = sio.loadmat(label_file)['label']
                 distance = (lambda x1, y1, x2, y2: abs(x1 - x2) + abs(y1 - y2))
 
+                # centers = cluster(centers)
+
                 TP = 0
                 for x, y in labels:
                     for x_, y_ in centers:
@@ -145,27 +132,27 @@ def main():
                 f_score = 2 * (precision * recall) / (precision + recall)
                 six.print_(precision, recall, f_score)
 
-                # f = open(dirpath.split('/')[-1] + '-predict.txt', 'w')
-                # for x, y in centers:
-                #    f.write(str(x) + ' ' + str(y) + '\n')
-                # f.close()
-                # f = open(dirpath.split('/')[-1] + '-label.txt', 'w')
-                # for x, y in labels:
-                #     f.write(str(x) + ' ' + str(y) + '\n')
-                # f.close()
-
-                img = img / np.float32(256)
-                plt.imshow(img, cmap=plt.cm.gray)
-                currentAxis = plt.gca()
-                for x, y in labels:
-                    currentAxis.add_patch(Rectangle((y - 90, x - 90),
-                                                    180, 180, fill=None,
-                                                    alpha=1))
+                f = open(dirpath.split('/')[-1] + '-predict.txt', 'w')
                 for x, y in centers:
-                    currentAxis.add_patch(Rectangle((y - 90, x - 90),
-                                                    180, 180, fill=None,
-                                                    alpha=1, color='blue'))
-                plt.show()
+                    f.write(str(x) + ' ' + str(y) + '\n')
+                f.close()
+                f = open(dirpath.split('/')[-1] + '-label.txt', 'w')
+                for x, y in labels:
+                    f.write(str(x) + ' ' + str(y) + '\n')
+                f.close()
+
+                # img = img / np.float32(256)
+                # plt.imshow(img, cmap=plt.cm.gray)
+                # currentAxis = plt.gca()
+                # for x, y in labels:
+                #     currentAxis.add_patch(Rectangle((y - 90, x - 90),
+                #                                     180, 180, fill=None,
+                #                                     alpha=1, color='blue'))
+                # for x, y in centers:
+                #     currentAxis.add_patch(Rectangle((y - 90, x - 90),
+                #                                     180, 180, fill=None,
+                #                                     alpha=1, color='red'))
+                # plt.show()
 
 
 if __name__ == '__main__':

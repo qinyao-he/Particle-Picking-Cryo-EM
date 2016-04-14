@@ -39,6 +39,25 @@ def save_list(filename, out_list):
     fout.close()
 
 
+def cluster(centers):
+    n_class = int(len(centers) * 0.18)
+    est = KMeans(n_clusters=n_class, max_iter=1000)
+    est.fit(centers)
+    new_list = []
+    for x, y in est.cluster_centers_:
+        min_num = 10000
+        min_x = -1
+        min_y = -1
+        for x_, y_ in centers:
+            dist = distance(x, y, x_, y_)
+            if (dist < min_num) or (min_x == -1):
+                min_num = dist
+                min_x = x_
+                min_y = y_
+        new_list.append([min_x, min_y])
+    return new_list
+
+
 def main():
     centers = get_list('out_center.txt')
     labels = get_list('142-label.txt')
