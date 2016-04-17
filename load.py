@@ -15,7 +15,7 @@ def load_data():
     train_x = train_x[indices]
     train_y = train_y[indices]
 
-    valid_len = len(train_x) / 10
+    valid_len = int(len(train_x) / 10)
 
     train_x = train_x / np.float32(256.0)
 
