@@ -9,36 +9,26 @@ import matplotlib
 
 from cluster import cluster
 
-model = None
-svm = None
-pca = None
+logsitc_model = None
+vgg_model = None
 
 
 def init_model():
-    global model
+    global logsitc_model
+    global vgg_model
     import models.logistic
-    model = models.logistic.build()
-    model.compile(loss='binary_crossentropy', optimizer='sgd')
-    model.load_weights('logistic.hdf5')
+    logsitc_model = models.logistic.build()
+    logsitc_model.compile(loss='binary_crossentropy', optimizer='sgd')
+    logsitc_model.load_weights('logistic.hdf5')
+
+    vgg_model = models.vgg.build()
+    vgg_model.compile(loss='binary_crossentropy', optimizer='sgd')
+    vgg_model.load_weights('logistic.hdf5')
 
 
-def init_svm():
-    global svm
-    global pca
-    svm = pickle.load(open('svm.pickle', 'rb'))
-    pca = pickle.load(open('pca.pickle', 'rb'))
-
-
-def prediction(img_batch):
+def prediction(model, img_batch):
     img_batch = np.reshape(img_batch, (-1, 1, 64, 64))
     predict = model.predict(img_batch, verbose=0)
-    return predict
-
-
-def prediction_svm(img_batch):
-    img_batch = np.reshape(img_batch, (-1, 64 * 64))
-    img_batch = pca.transform(img_batch)
-    predict = svm.predict(img_batch)
     return predict
 
 
@@ -87,15 +77,25 @@ def detection(img):
             patch = img[i * stride: i * stride + PATCH_SIZE,
                         j * stride: j * stride + PATCH_SIZE] / 256.0
             img_batch[i, j] = skimage.transform.resize(patch, (64, 64))
-    predict_map = prediction(img_batch.reshape(-1, 64, 64))
+
+    img_batch = img_batch.reshape(-1, 64, 64)
+    predict_map = prediction(logsitc_model, img_batch)
     predict_map = predict_map.reshape((map_width, map_height))
 
-    result = []
+    candicates = []
+    img_batch = np.zeros((0, 64, 64))
     for i in range(0, map_width):
         for j in range(0, map_width):
             if predict_map[i, j] > 0.8:
-                result.append((i * stride + PATCH_SIZE / 2,
-                               j * stride + PATCH_SIZE / 2))
+                patch = img[i * stride: i * stride + PATCH_SIZE,
+                            j * stride: j * stride + PATCH_SIZE] / 256.0
+                patch = skimage.transform.resize(patch, (64, 64))
+                img_batch = np.append(img_batch, patch.reshape(1, 64, 64))
+                candicates.append((i * stride + PATCH_SIZE / 2,
+                                   j * stride + PATCH_SIZE / 2))
+
+    predict = prediction(vgg_model, img_batch)
+    result = candicates[predict > 0.9]
     return result
 
 
