@@ -21,9 +21,10 @@ def init_model():
     logsitc_model.compile(loss='binary_crossentropy', optimizer='sgd')
     logsitc_model.load_weights('logistic.hdf5')
 
+    import models.vgg
     vgg_model = models.vgg.build()
     vgg_model.compile(loss='binary_crossentropy', optimizer='sgd')
-    vgg_model.load_weights('logistic.hdf5')
+    vgg_model.load_weights('vgg.hdf5')
 
 
 def prediction(model, img_batch):
@@ -94,13 +95,14 @@ def detection(img):
                 candicates.append((i * stride + PATCH_SIZE / 2,
                                    j * stride + PATCH_SIZE / 2))
 
-    predict = prediction(vgg_model, img_batch)
-    result = candicates[predict > 0.9]
+    predict = prediction(vgg_model, img_batch).reshape(-1)
+    candicates = np.array(candicates)
+    result = candicates[predict > 0.95]
     return result
 
 
 def main():
-    matplotlib.use('qt5agg')
+    # matplotlib.use('qt5agg')
     import matplotlib.pyplot as plt
     from matplotlib.patches import Rectangle
 
@@ -119,7 +121,7 @@ def main():
                 labels = sio.loadmat(label_file)['label']
                 distance = (lambda x1, y1, x2, y2: abs(x1 - x2) + abs(y1 - y2))
 
-                # centers = cluster(centers)
+                centers = cluster(centers)
 
                 TP = 0
                 for x, y in labels:
